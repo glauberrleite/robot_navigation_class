@@ -1,0 +1,8 @@
+prefix=/home/glauberrleite/nav_class_ws/devel
+
+Name: tangent_bug
+Description: Description of tangent_bug
+Version: 0.0.0
+Cflags: 
+Libs: -L/home/glauberrleite/nav_class_ws/devel/lib 
+Requires: 

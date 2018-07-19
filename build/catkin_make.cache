@@ -1,0 +1,2 @@
+mover:tangent_bug
+-DCATKIN_DEVEL_PREFIX=/home/glauberrleite/nav_class_ws/devel -DCMAKE_INSTALL_PREFIX=/home/glauberrleite/nav_class_ws/install -G Unix Makefiles
