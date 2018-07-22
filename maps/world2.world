@@ -1,3 +1,5 @@
+include "kobuki.inc"
+
 define floorplan model
 (
   # sombre, sensible, artistic
@@ -15,34 +17,14 @@ define floorplan model
   ranger_return 1
 )
 
-define topurg ranger
-(
-	sensor(
-		range [0.0 1.0]
-		fov 270
-		samples 1081
-	)
-
-	color "black"
-	size [0.05 0.05 0.1]
-)
-
-define robot position 
-(
-	origin [0 0 0 0]
-	drive "omni"
-	bitmap "circle.png"
-	topurg (pose [0 0 0 0])
-)
-
 resolution 0.02
 interval_sim 100
 
-robot 
+kobuki 
 (
 	pose [0 0 0 0]
 	name "r0"
-	color "blue"
+	color "black"
 )
 
 floorplan
