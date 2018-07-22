@@ -30,5 +30,5 @@ kobuki
 floorplan
 (
    bitmap "bitmaps/world2.png"
-   size [35 20 4]    
+   size [70 40 4]    
 )

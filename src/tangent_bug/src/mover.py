@@ -11,8 +11,9 @@ class Mover:
 
 	def __init__(self, name):
 		rospy.init_node('mover_{}'.format(name), anonymous=True)
-		self.rate = rospy.Rate(5)
+		self.rate = rospy.Rate(1)
 		self.tolerance = 0.1
+		self.oldCost = float('Inf')
 		
 		self.current = numpy.array([0, 0, 0])
 
@@ -34,7 +35,7 @@ class Mover:
 		return int((angle - self.scan.angle_min)/self.scan.angle_increment)
 	
 	def sensorAngle(self, index):
-		return int(index * self.scan.angle_increment + self.scan.angle_min)
+		return float(index * self.scan.angle_increment + self.scan.angle_min)
 
 	def cost(self, index):
 		result = float('Inf')
@@ -42,7 +43,9 @@ class Mover:
 		
 		d_xn = self.scan.ranges[index]
 		
+		
 		if d_xn >= threshold:
+			
 			delta = numpy.array([d_xn * numpy.cos(self.sensorAngle(index)), d_xn * numpy.sin(self.sensorAngle(index))])
 			q_n = self.current + delta
 			d_nq = numpy.linalg.norm(self.goal - q_n)
@@ -61,6 +64,7 @@ class Mover:
 			print(self.current)
 
 			angle = 0
+			cost = float('Inf')
 
 			'If path is locally clean for q_goal, go that direction'
 			angleToGoal = numpy.arctan2(error[1], error[0])
@@ -68,6 +72,7 @@ class Mover:
 			rangeToGoal = self.scan.ranges[self.sensorIndex(angleToGoal)]
 			if (rangeToGoal >= self.scan.range_max) or (error_norm <= rangeToGoal):
 				angle = angleToGoal
+				cost = self.oldCost
 				print('ok')
 			else:
 				'If we met an obstacle to goal, we need to find another direction'
@@ -75,16 +80,21 @@ class Mover:
 
 				for i in range(len(self.scan.ranges)):
 					cost = self.cost(i)
+					
 					if cost < minCost:
 						minCost = cost
 						angle = self.sensorAngle(i)
 			
+			if (cost > self.oldCost):
+				print('We have a situation here')
+			self.oldCost = cost
+
 			'Move using computed angle'
 			d_xn = self.scan.ranges[self.sensorIndex(angle)]
 			delta = numpy.array([d_xn * numpy.cos(angle), d_xn * numpy.sin(angle)])
 			vel = gain * delta
 			
-			print(angle)
+			print(angle * 180 / numpy.pi)
 			vel_msg = Twist()
 
 			vel_msg.linear.x = float(vel[0])

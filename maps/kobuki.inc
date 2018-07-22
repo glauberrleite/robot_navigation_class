@@ -1,8 +1,8 @@
 define kobukilaser ranger (
 	sensor (
-		range [0 2]
+		range [0 5]
 		fov 360
-		samples 360
+		samples 1080
 	)
 	
 	color "blue"
@@ -12,7 +12,7 @@ define kobukilaser ranger (
 
 define kobuki position (
 	bitmap "circle.png"
-	color "black"  
+	color "black"
 	drive "omni"
 	gui_nose 1
 	obstacle_return 1
@@ -20,10 +20,6 @@ define kobuki position (
 
 	size [0.5 0.5 0.5]
 
-	# four DOF kinematics limits
-	# [ xmin xmax ymin ymax zmin zmax amin amax ]				
-	#velocity_bounds     [-0.75 0.75 0 0 0 0 -90.0 90.0 ]					
-	#acceleration_bounds [-0.5 0.5 0 0 0 0 -90.0 90.0 ]
 	
 	# When the center of rotation is offset from its center of area
 	origin [0 0 0 0]
