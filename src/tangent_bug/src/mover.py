@@ -27,6 +27,7 @@ class Mover:
 
 	def odomCallback(self, msg):
 		self.current = numpy.array([msg.pose.pose.position.x, msg.pose.pose.position.y])
+		self.theta = 2 * numpy.arccos(msg.pose.pose.orientation.w) * numpy.sign(msg.pose.pose.orientation.z)
 	
 	def scanCallback(self, msg):
 		self.scan = msg
@@ -43,10 +44,9 @@ class Mover:
 		
 		d_xn = self.scan.ranges[index]
 		
-		
 		if d_xn >= threshold:
 			
-			delta = numpy.array([d_xn * numpy.cos(self.sensorAngle(index)), d_xn * numpy.sin(self.sensorAngle(index))])
+			delta = numpy.array([d_xn * numpy.cos(self.sensorAngle(index) + self.theta), d_xn * numpy.sin(self.sensorAngle(index) + self.theta)])
 			q_n = self.current + delta
 			d_nq = numpy.linalg.norm(self.goal - q_n)
 			
@@ -67,13 +67,12 @@ class Mover:
 			cost = float('Inf')
 
 			'If path is locally clean for q_goal, go that direction'
-			angleToGoal = numpy.arctan2(error[1], error[0])
-			
+			angleToGoal = numpy.arctan2(error[1], error[0]) - self.theta
 			rangeToGoal = self.scan.ranges[self.sensorIndex(angleToGoal)]
+		
 			if (rangeToGoal >= self.scan.range_max) or (error_norm <= rangeToGoal):
 				angle = angleToGoal
 				cost = self.oldCost
-				print('ok')
 			else:
 				'If we met an obstacle to goal, we need to find another direction'
 				minCost = float('Inf')
@@ -90,19 +89,15 @@ class Mover:
 			self.oldCost = cost
 
 			'Move using computed angle'
-			d_xn = self.scan.ranges[self.sensorIndex(angle)]
-			delta = numpy.array([d_xn * numpy.cos(angle), d_xn * numpy.sin(angle)])
-			vel = gain * delta
-			
 			print(angle * 180 / numpy.pi)
 			vel_msg = Twist()
 
-			vel_msg.linear.x = float(vel[0])
-			vel_msg.linear.y = float(vel[1])
+			vel_msg.linear.x = gain
+			vel_msg.linear.y = 0
 			vel_msg.linear.z = 0
 			vel_msg.angular.x = 0
 			vel_msg.angular.y = 0
-			vel_msg.angular.z = 0
+			vel_msg.angular.z = angle
 			
 			self.vel.publish(vel_msg)
 
