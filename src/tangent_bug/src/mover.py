@@ -11,7 +11,7 @@ class Mover:
 
 	def __init__(self, name):
 		rospy.init_node('mover_{}'.format(name), anonymous=True)
-		self.rate = rospy.Rate(1)
+		self.rate = rospy.Rate(5)
 		self.tolerance = 0.1
 		self.oldCost = float('Inf')
 		
@@ -54,6 +54,31 @@ class Mover:
 			
 		return result
 
+	def avoidCollisions(self, angle):
+		deltaAngle = 20 * numpy.pi / 180
+
+		zeroAngleIndex = self.sensorIndex(0)
+		clockWiseRot = False
+		tooClose = False
+
+		minRange = self.scan.range_max / 2
+		for i in range(len(self.scan.ranges)):
+			if self.scan.ranges[i] < minRange:
+				tooClose = True
+				if i < self.sensorIndex(0):
+					clockWiseRot = True
+				else:
+					clockWiseRot = False
+					break
+
+		if tooClose:
+			if clockWiseRot:
+				angle = angle + deltaAngle
+			else:
+				angle = angle - deltaAngle
+
+		return angle
+
 	def goTo(self, goal, gain):
 		self.goal = goal
 
@@ -65,14 +90,18 @@ class Mover:
 
 			angle = 0
 			cost = float('Inf')
+			avoidCollisions = True
 
 			'If path is locally clean for q_goal, go that direction'
 			angleToGoal = numpy.arctan2(error[1], error[0]) - self.theta
-			rangeToGoal = self.scan.ranges[self.sensorIndex(angleToGoal)]
+			rangeToGoal = self.scan.ranges[numpy.minimum(self.sensorIndex(angleToGoal), len(self.scan.ranges) - 1)]
 		
 			if (rangeToGoal >= self.scan.range_max) or (error_norm <= rangeToGoal):
 				angle = angleToGoal
 				cost = self.oldCost
+				
+				if (error_norm <= rangeToGoal):
+					avoidCollisions = False
 			else:
 				'If we met an obstacle to goal, we need to find another direction'
 				minCost = float('Inf')
@@ -84,12 +113,14 @@ class Mover:
 						minCost = cost
 						angle = self.sensorAngle(i)
 			
+			if avoidCollisions:
+				angle = self.avoidCollisions(angle)
+	
 			if (cost > self.oldCost):
 				print('We have a situation here')
 			self.oldCost = cost
 
 			'Move using computed angle'
-			print(angle * 180 / numpy.pi)
 			vel_msg = Twist()
 
 			vel_msg.linear.x = gain

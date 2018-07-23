@@ -2,4 +2,4 @@
 source_root_dir = "/home/glauberrleite/nav_class_ws/src"
 whitelisted_packages = "".split(';') if "" != "" else []
 blacklisted_packages = "".split(';') if "" != "" else []
-underlay_workspaces = "/opt/ros/melodic".split(';') if "/opt/ros/melodic" != "" else []
+underlay_workspaces = "/home/glauberrleite/nav_class_ws/devel;/opt/ros/melodic".split(';') if "/home/glauberrleite/nav_class_ws/devel;/opt/ros/melodic" != "" else []
